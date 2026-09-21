@@ -1,0 +1,501 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WVS Synthetic Data Analysis</title>
+    <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --color-bg: #ffffff;
+            --color-text: #333333;
+            --color-border: #e0e0e0;
+            --color-light: #f5f5f5;
+        }
+
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --color-bg: #1a1a1a;
+                --color-text: #e0e0e0;
+                --color-border: #333333;
+                --color-light: #2a2a2a;
+            }
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background-color: var(--color-bg);
+            color: var(--color-text);
+            line-height: 1.6;
+            padding: 1rem;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        h1 {
+            font-size: 2rem;
+            margin: 2rem 0 1rem;
+            color: var(--color-text);
+        }
+
+        h2 {
+            font-size: 1.5rem;
+            margin: 2rem 0 1rem;
+            color: var(--color-text);
+            border-bottom: 2px solid var(--color-border);
+            padding-bottom: 0.5rem;
+        }
+
+        h3 {
+            font-size: 1.2rem;
+            margin: 1.5rem 0 0.5rem;
+            color: var(--color-text);
+        }
+
+        p {
+            margin-bottom: 1rem;
+            font-size: 0.95rem;
+            line-height: 1.7;
+        }
+
+        a {
+            color: #0066cc;
+            text-decoration: none;
+        }
+
+        a:hover {
+            text-decoration: underline;
+        }
+
+        .intro {
+            background-color: var(--color-light);
+            padding: 1.5rem;
+            border-radius: 8px;
+            margin-bottom: 2rem;
+        }
+
+        .data-summary {
+            background-color: var(--color-light);
+            padding: 1.5rem;
+            border-radius: 8px;
+            margin-bottom: 2rem;
+        }
+
+        .column-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 1rem 0;
+            font-size: 0.9rem;
+        }
+
+        .column-table th,
+        .column-table td {
+            border: 1px solid var(--color-border);
+            padding: 0.75rem;
+            text-align: left;
+        }
+
+        .column-table th {
+            background-color: var(--color-border);
+            font-weight: 600;
+        }
+
+        .chart-section {
+            margin-bottom: 3rem;
+        }
+
+        .chart-container {
+            background-color: var(--color-light);
+            padding: 1rem;
+            border-radius: 8px;
+            margin-bottom: 1rem;
+        }
+
+        .chart {
+            width: 100%;
+            height: 500px;
+        }
+
+        .takeaway {
+            font-size: 0.95rem;
+            margin-top: 1rem;
+            padding: 0.75rem;
+            background-color: var(--color-bg);
+            border-left: 4px solid var(--color-border);
+            color: var(--color-text);
+        }
+
+        .heatmap-container {
+            overflow-x: auto;
+            margin: 1rem 0;
+        }
+
+        .heatmap {
+            border-collapse: collapse;
+            font-size: 0.85rem;
+        }
+
+        .heatmap th {
+            background-color: var(--color-border);
+            padding: 0.5rem;
+            text-align: center;
+            border: 1px solid var(--color-border);
+            font-weight: 600;
+        }
+
+        .heatmap td {
+            width: 50px;
+            height: 50px;
+            text-align: center;
+            vertical-align: middle;
+            border: 1px solid var(--color-border);
+            font-weight: 500;
+            font-size: 0.8rem;
+        }
+
+        .heatmap-cell {
+            width: 100%;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 4px;
+        }
+
+        @media (max-width: 768px) {
+            h1 {
+                font-size: 1.5rem;
+            }
+
+            h2 {
+                font-size: 1.2rem;
+            }
+
+            .chart {
+                height: 400px;
+            }
+
+            .heatmap td {
+                width: 40px;
+                height: 40px;
+                font-size: 0.75rem;
+            }
+
+            .column-table {
+                font-size: 0.8rem;
+            }
+
+            .column-table th,
+            .column-table td {
+                padding: 0.5rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>World Values Survey (Synthetic Data) — Exploratory Analysis</h1>
+
+        <div class="intro">
+            <p>
+                <strong>Data Source:</strong> This is a <em>synthetic (simulated)</em> dataset designed to resemble the
+                <a href="https://www.worldvaluessurvey.org" target="_blank">World Values Survey, Wave 7</a> (Inglehart et al., 2022).
+                No real respondent data is included; all values are fabricated to mirror the distributions and relationships observed
+                in the actual WVS. Any patterns and insights presented below are <strong>illustrative only</strong> and should not
+                be interpreted as reflecting real-world respondent attitudes.
+            </p>
+            <p>
+                <strong>Coverage:</strong> This analysis covers 5 countries across different regions of Asia:
+                <strong>Turkey</strong> (Middle East), <strong>India</strong> (South Asia), <strong>Singapore</strong> (Southeast Asia),
+                <strong>China</strong> (East Asia), and <strong>Kazakhstan</strong> (Central Asia).
+            </p>
+        </div>
+
+        <h2>Data Summary</h2>
+        <div class="data-summary">
+            <h3>Dataset Overview</h3>
+            <p>
+                <strong>Original rows:</strong> 9329<br>
+                <strong>Duplicates removed:</strong> 0<br>
+                <strong>Rows with missing values removed:</strong> 834<br>
+                <strong>Rows analyzed:</strong> 8495
+            </p>
+
+            <h3>Columns and Data Types</h3>
+            <table class="column-table">
+                <thead>
+                    <tr>
+                        <th>Column Name</th>
+                        <th>Data Type</th>
+                        <th>Non-Empty Observations</th>
+                    </tr>
+                </thead>
+                <tbody id="column-rows">
+                </tbody>
+            </table>
+        </div>
+
+        <h2>Analyses</h2>
+
+        <div class="chart-section">
+            <h3>1. Cultural Map: Emancipative vs Secular Values</h3>
+            <p>
+                Each point represents a country's average position on two key value dimensions:
+                emancipative values (y-axis) measure support for gender equality, sexual diversity, and individual autonomy;
+                secular values (x-axis) reflect trust in institutions and rational decision-making over religious authority.
+            </p>
+            <div class="chart-container">
+                <div id="cultural-map" class="chart"></div>
+            </div>
+            <div class="takeaway" id="cultural-map-takeaway"></div>
+        </div>
+
+        <div class="chart-section">
+            <h3>2. Value Fingerprints: Six-Dimensional Value Profile</h3>
+            <p>
+                Each country is profiled across six normalized dimensions: life satisfaction, trust in people,
+                importance of religion, emancipative values, secular values, and financial satisfaction.
+                Overlaid radar lines reveal each nation's distinctive value pattern.
+            </p>
+            <div class="chart-container">
+                <div id="value-fingerprints" class="chart"></div>
+            </div>
+            <div class="takeaway" id="fingerprints-takeaway"></div>
+        </div>
+
+        <div class="chart-section">
+            <h3>3. Individual Values: China vs India</h3>
+            <p>
+                A scatter plot of ~300 randomly sampled respondents from China and India on the emancipative–secular plane.
+                Larger outlined points mark each country's mean. Despite different average positions, substantial overlap
+                in the clouds reveals within-country diversity that often exceeds between-country differences.
+            </p>
+            <div class="chart-container">
+                <div id="china-india-scatter" class="chart"></div>
+            </div>
+            <div class="takeaway" id="china-india-takeaway"></div>
+        </div>
+
+        <div class="chart-section">
+            <h3>4. Life Satisfaction vs Financial Satisfaction: Singapore</h3>
+            <p>
+                A 10×10 heatmap showing the joint distribution of life satisfaction (rows) and financial satisfaction (columns)
+                among Singapore respondents. Darker cells indicate more respondents at that combination; cell counts are displayed inside.
+            </p>
+            <div class="chart-container">
+                <div class="heatmap-container">
+                    <table class="heatmap" id="singapore-heatmap"></table>
+                </div>
+            </div>
+            <div class="takeaway" id="singapore-takeaway"></div>
+        </div>
+    </div>
+
+    <script type="application/json" id="data">
+    {"countries": ["China", "India", "Kazakhstan", "Singapore", "Turkey"], "colors": {"China": "#E69F00", "Singapore": "#D55E00", "Turkey": "#CC79A7", "India": "#0072B2", "Kazakhstan": "#009E73"}, "column_info": {"country": {"type": "categorical", "observations": 8495}, "age": {"type": "numeric", "observations": 8495}, "urban_rural": {"type": "categorical", "observations": 8495}, "income_level": {"type": "categorical", "observations": 8495}, "sex": {"type": "categorical", "observations": 8495}, "marital_status": {"type": "categorical", "observations": 8495}, "education": {"type": "categorical", "observations": 8495}, "life_satisfaction": {"type": "numeric (1-10 scale)", "observations": 8495}, "freedom_of_choice": {"type": "numeric (1-10 scale)", "observations": 8495}, "emancipative_values": {"type": "numeric (0-1 index)", "observations": 8495}, "trust_people": {"type": "categorical (Trusted/Not trusted)", "observations": 8495}, "importance_of_god": {"type": "numeric (1-10 scale)", "observations": 8495}, "financial_satisfaction": {"type": "numeric (1-10 scale)", "observations": 8495}, "secular_values": {"type": "numeric (0-1 index)", "observations": 8495}}, "metadata": {"total_rows_original": 9329, "duplicates": 0, "rows_with_missing": 834, "rows_analyzed": 8495}, "aggregates": {"China": {"life_satisfaction": 7.5, "freedom_of_choice": 7.2, "emancipative_values": 0.39, "trust_people": 0.66, "importance_of_god": 2.8, "financial_satisfaction": 6.6, "secular_values": 0.4, "count": 2882}, "India": {"life_satisfaction": 7.3, "freedom_of_choice": 7.3, "emancipative_values": 0.38, "trust_people": 0.19, "importance_of_god": 7.9, "financial_satisfaction": 6.4, "secular_values": 0.26, "count": 1567}, "Kazakhstan": {"life_satisfaction": 7.0, "freedom_of_choice": 6.8, "emancipative_values": 0.37, "trust_people": 0.24, "importance_of_god": 7.8, "financial_satisfaction": 6.3, "secular_values": 0.37, "count": 977}, "Singapore": {"life_satisfaction": 7.0, "freedom_of_choice": 6.9, "emancipative_values": 0.45, "trust_people": 0.35, "importance_of_god": 6.7, "financial_satisfaction": 6.5, "secular_values": 0.31, "count": 1898}, "Turkey": {"life_satisfaction": 6.4, "freedom_of_choice": 6.7, "emancipative_values": 0.36, "trust_people": 0.16, "importance_of_god": 8.1, "financial_satisfaction": 5.8, "secular_values": 0.27, "count": 1171}}, "china_sample": [{"secular_values": 0.349928, "emancipative_values": 0.410367}, {"secular_values": 0.421009, "emancipative_values": 0.399657}, {"secular_values": 0.332344, "emancipative_values": 0.452189}, {"secular_values": 0.494548, "emancipative_values": 0.408002}, {"secular_values": 0.393302, "emancipative_values": 0.450348}, {"secular_values": 0.417416, "emancipative_values": 0.348013}, {"secular_values": 0.603223, "emancipative_values": 0.432309}, {"secular_values": 0.37871, "emancipative_values": 0.452675}, {"secular_values": 0.273712, "emancipative_values": 0.353844}, {"secular_values": 0.323054, "emancipative_values": 0.265421}, {"secular_values": 0.414915, "emancipative_values": 0.387619}, {"secular_values": 0.400953, "emancipative_values": 0.330808}, {"secular_values": 0.270088, "emancipative_values": 0.256312}, {"secular_values": 0.272005, "emancipative_values": 0.298092}, {"secular_values": 0.272616, "emancipative_values": 0.219096}, {"secular_values": 0.610127, "emancipative_values": 0.296855}, {"secular_values": 0.501509, "emancipative_values": 0.53648}, {"secular_values": 0.30071, "emancipative_values": 0.413175}, {"secular_values": 0.223997, "emancipative_values": 0.19888}, {"secular_values": 0.571317, "emancipative_values": 0.399849}, {"secular_values": 0.269971, "emancipative_values": 0.324018}, {"secular_values": 0.396754, "emancipative_values": 0.324826}, {"secular_values": 0.518229, "emancipative_values": 0.334679}, {"secular_values": 0.329918, "emancipative_values": 0.303694}, {"secular_values": 0.32663, "emancipative_values": 0.223047}, {"secular_values": 0.203827, "emancipative_values": 0.308536}, {"secular_values": 0.45003, "emancipative_values": 0.384617}, {"secular_values": 0.319897, "emancipative_values": 0.392977}, {"secular_values": 0.553816, "emancipative_values": 0.302027}, {"secular_values": 0.428679, "emancipative_values": 0.300899}, {"secular_values": 0.267965, "emancipative_values": 0.097662}, {"secular_values": 0.234887, "emancipative_values": 0.543268}, {"secular_values": 0.3967, "emancipative_values": 0.459062}, {"secular_values": 0.477956, "emancipative_values": 0.469183}, {"secular_values": 0.435907, "emancipative_values": 0.447576}, {"secular_values": 0.465902, "emancipative_values": 0.257418}, {"secular_values": 0.753753, "emancipative_values": 0.377572}, {"secular_values": 0.346468, "emancipative_values": 0.456763}, {"secular_values": 0.253506, "emancipative_values": 0.734293}, {"secular_values": 0.318161, "emancipative_values": 0.488524}, {"secular_values": 0.317705, "emancipative_values": 0.29573}, {"secular_values": 0.41204, "emancipative_values": 0.458029}, {"secular_values": 0.437795, "emancipative_values": 0.567618}, {"secular_values": 0.284612, "emancipative_values": 0.324499}, {"secular_values": 0.361593, "emancipative_values": 0.305533}, {"secular_values": 0.31593, "emancipative_values": 0.386568}, {"secular_values": 0.434234, "emancipative_values": 0.370569}, {"secular_values": 0.385049, "emancipative_values": 0.268119}, {"secular_values": 0.368924, "emancipative_values": 0.41638}, {"secular_values": 0.492948, "emancipative_values": 0.459152}, {"secular_values": 0.380553, "emancipative_values": 0.302771}, {"secular_values": 0.399639, "emancipative_values": 0.269806}, {"secular_values": 0.353114, "emancipative_values": 0.462348}, {"secular_values": 0.194262, "emancipative_values": 0.484798}, {"secular_values": 0.438445, "emancipative_values": 0.39811}, {"secular_values": 0.648474, "emancipative_values": 0.714132}, {"secular_values": 0.442147, "emancipative_values": 0.214913}, {"secular_values": 0.423357, "emancipative_values": 0.264122}, {"secular_values": 0.386232, "emancipative_values": 0.265105}, {"secular_values": 0.326142, "emancipative_values": 0.501135}, {"secular_values": 0.20237, "emancipative_values": 0.314544}, {"secular_values": 0.443879, "emancipative_values": 0.287988}, {"secular_values": 0.706315, "emancipative_values": 0.350466}, {"secular_values": 0.182691, "emancipative_values": 0.717273}, {"secular_values": 0.451744, "emancipative_values": 0.312024}, {"secular_values": 0.690831, "emancipative_values": 0.456483}, {"secular_values": 0.728889, "emancipative_values": 0.720878}, {"secular_values": 0.309977, "emancipative_values": 0.423765}, {"secular_values": 0.550665, "emancipative_values": 0.326365}, {"secular_values": 0.720535, "emancipative_values": 0.439222}, {"secular_values": 0.547637, "emancipative_values": 0.343918}, {"secular_values": 0.313568, "emancipative_values": 0.269878}, {"secular_values": 0.382295, "emancipative_values": 0.321875}, {"secular_values": 0.298746, "emancipative_values": 0.470735}, {"secular_values": 0.203063, "emancipative_values": 0.457672}, {"secular_values": 0.332904, "emancipative_values": 0.419426}, {"secular_values": 0.353468, "emancipative_values": 0.386214}, {"secular_values": 0.204845, "emancipative_values": 0.253933}, {"secular_values": 0.535709, "emancipative_values": 0.342767}, {"secular_values": 0.339633, "emancipative_values": 0.150117}, {"secular_values": 0.446915, "emancipative_values": 0.373842}, {"secular_values": 0.358972, "emancipative_values": 0.757371}, {"secular_values": 0.476514, "emancipative_values": 0.431272}, {"secular_values": 0.42475, "emancipative_values": 0.31319}, {"secular_values": 0.635552, "emancipative_values": 0.457613}, {"secular_values": 0.130508, "emancipative_values": 0.355363}, {"secular_values": 0.448534, "emancipative_values": 0.254506}, {"secular_values": 0.556011, "emancipative_values": 0.471627}, {"secular_values": 0.408093, "emancipative_values": 0.412035}, {"secular_values": 0.561914, "emancipative_values": 0.561014}, {"secular_values": 0.246131, "emancipative_values": 0.254119}, {"secular_values": 0.336724, "emancipative_values": 0.209061}, {"secular_values": 0.342512, "emancipative_values": 0.274324}, {"secular_values": 0.442651, "emancipative_values": 0.361873}, {"secular_values": 0.66674, "emancipative_values": 0.489222}, {"secular_values": 0.430488, "emancipative_values": 0.265317}, {"secular_values": 0.323267, "emancipative_values": 0.19717}, {"secular_values": 0.484731, "emancipative_values": 0.21091}, {"secular_values": 0.40248, "emancipative_values": 0.407169}, {"secular_values": 0.334951, "emancipative_values": 0.514259}, {"secular_values": 0.311431, "emancipative_values": 0.474252}, {"secular_values": 0.148614, "emancipative_values": 0.201778}, {"secular_values": 0.259712, "emancipative_values": 0.432601}, {"secular_values": 0.362857, "emancipative_values": 0.313277}, {"secular_values": 0.401934, "emancipative_values": 0.42827}, {"secular_values": 0.500078, "emancipative_values": 0.254809}, {"secular_values": 0.442698, "emancipative_values": 0.345814}, {"secular_values": 0.382944, "emancipative_values": 0.161427}, {"secular_values": 0.464992, "emancipative_values": 0.328167}, {"secular_values": 0.663918, "emancipative_values": 0.468025}, {"secular_values": 0.323056, "emancipative_values": 0.347132}, {"secular_values": 0.292854, "emancipative_values": 0.479598}, {"secular_values": 0.311602, "emancipative_values": 0.277008}, {"secular_values": 0.289669, "emancipative_values": 0.36934}, {"secular_values": 0.357441, "emancipative_values": 0.621107}, {"secular_values": 0.576789, "emancipative_values": 0.47083}, {"secular_values": 0.502643, "emancipative_values": 0.444227}, {"secular_values": 0.261605, "emancipative_values": 0.296783}, {"secular_values": 0.395523, "emancipative_values": 0.428349}, {"secular_values": 0.617834, "emancipative_values": 0.429804}, {"secular_values": 0.411852, "emancipative_values": 0.41442}, {"secular_values": 0.527447, "emancipative_values": 0.583521}, {"secular_values": 0.452384, "emancipative_values": 0.351607}, {"secular_values": 0.370129, "emancipative_values": 0.391712}, {"secular_values": 0.213899, "emancipative_values": 0.438263}, {"secular_values": 0.612867, "emancipative_values": 0.335196}, {"secular_values": 0.473468, "emancipative_values": 0.424802}, {"secular_values": 0.34321, "emancipative_values": 0.384213}, {"secular_values": 0.296765, "emancipative_values": 0.413749}, {"secular_values": 0.322978, "emancipative_values": 0.259721}, {"secular_values": 0.601547, "emancipative_values": 0.59298}, {"secular_values": 0.2368, "emancipative_values": 0.29256}, {"secular_values": 0.401276, "emancipative_values": 0.41787}, {"secular_values": 0.629668, "emancipative_values": 0.505743}, {"secular_values": 0.309053, "emancipative_values": 0.302666}, {"secular_values": 0.324819, "emancipative_values": 0.508187}, {"secular_values": 0.376903, "emancipative_values": 0.211686}, {"secular_values": 0.349987, "emancipative_values": 0.360715}, {"secular_values": 0.365097, "emancipative_values": 0.396335}, {"secular_values": 0.350084, "emancipative_values": 0.36127}, {"secular_values": 0.293679, "emancipative_values": 0.563844}, {"secular_values": 0.453599, "emancipative_values": 0.581611}, {"secular_values": 0.14708, "emancipative_values": 0.250367}, {"secular_values": 0.373414, "emancipative_values": 0.322937}, {"secular_values": 0.22789, "emancipative_values": 0.376686}, {"secular_values": 0.398236, "emancipative_values": 0.268126}, {"secular_values": 0.33448, "emancipative_values": 0.518507}, {"secular_values": 0.268906, "emancipative_values": 0.308387}, {"secular_values": 0.355537, "emancipative_values": 0.453273}, {"secular_values": 0.254272, "emancipative_values": 0.275961}, {"secular_values": 0.431287, "emancipative_values": 0.475352}, {"secular_values": 0.61192, "emancipative_values": 0.644046}, {"secular_values": 0.340219, "emancipative_values": 0.478176}, {"secular_values": 0.51762, "emancipative_values": 0.298639}, {"secular_values": 0.445558, "emancipative_values": 0.412972}, {"secular_values": 0.192293, "emancipative_values": 0.28369}, {"secular_values": 0.320924, "emancipative_values": 0.64159}, {"secular_values": 0.281222, "emancipative_values": 0.379262}, {"secular_values": 0.458399, "emancipative_values": 0.385845}, {"secular_values": 0.358855, "emancipative_values": 0.469725}, {"secular_values": 0.156953, "emancipative_values": 0.26544}, {"secular_values": 0.549841, "emancipative_values": 0.508483}, {"secular_values": 0.364236, "emancipative_values": 0.415854}, {"secular_values": 0.22972, "emancipative_values": 0.403367}, {"secular_values": 0.424641, "emancipative_values": 0.355678}, {"secular_values": 0.318962, "emancipative_values": 0.370567}, {"secular_values": 0.265957, "emancipative_values": 0.499968}, {"secular_values": 0.284138, "emancipative_values": 0.274463}, {"secular_values": 0.283321, "emancipative_values": 0.447185}, {"secular_values": 0.280092, "emancipative_values": 0.389659}, {"secular_values": 0.246716, "emancipative_values": 0.299641}, {"secular_values": 0.24545, "emancipative_values": 0.320782}, {"secular_values": 0.612635, "emancipative_values": 0.300239}, {"secular_values": 0.506233, "emancipative_values": 0.243811}, {"secular_values": 0.381931, "emancipative_values": 0.105823}, {"secular_values": 0.349142, "emancipative_values": 0.396423}, {"secular_values": 0.440761, "emancipative_values": 0.424037}, {"secular_values": 0.489504, "emancipative_values": 0.475815}, {"secular_values": 0.322101, "emancipative_values": 0.436937}, {"secular_values": 0.277776, "emancipative_values": 0.270218}, {"secular_values": 0.258823, "emancipative_values": 0.612128}, {"secular_values": 0.387349, "emancipative_values": 0.180539}, {"secular_values": 0.385747, "emancipative_values": 0.279775}, {"secular_values": 0.389979, "emancipative_values": 0.480554}, {"secular_values": 0.272369, "emancipative_values": 0.422064}, {"secular_values": 0.357983, "emancipative_values": 0.232583}, {"secular_values": 0.34183, "emancipative_values": 0.506451}, {"secular_values": 0.27012, "emancipative_values": 0.378397}, {"secular_values": 0.253954, "emancipative_values": 0.3946}, {"secular_values": 0.600439, "emancipative_values": 0.372661}, {"secular_values": 0.436435, "emancipative_values": 0.647283}, {"secular_values": 0.398071, "emancipative_values": 0.284462}, {"secular_values": 0.486502, "emancipative_values": 0.422202}, {"secular_values": 0.403165, "emancipative_values": 0.438882}, {"secular_values": 0.454214, "emancipative_values": 0.424465}, {"secular_values": 0.426821, "emancipative_values": 0.362658}, {"secular_values": 0.32042, "emancipative_values": 0.296435}, {"secular_values": 0.363138, "emancipative_values": 0.489092}, {"secular_values": 0.44947, "emancipative_values": 0.446246}, {"secular_values": 0.422859, "emancipative_values": 0.415428}, {"secular_values": 0.697776, "emancipative_values": 0.359669}, {"secular_values": 0.37896, "emancipative_values": 0.523681}, {"secular_values": 0.543854, "emancipative_values": 0.455139}, {"secular_values": 0.383154, "emancipative_values": 0.465844}, {"secular_values": 0.501516, "emancipative_values": 0.449724}, {"secular_values": 0.392172, "emancipative_values": 0.375121}, {"secular_values": 0.484259, "emancipative_values": 0.304776}, {"secular_values": 0.265257, "emancipative_values": 0.334911}, {"secular_values": 0.315998, "emancipative_values": 0.331674}, {"secular_values": 0.562495, "emancipative_values": 0.48383}, {"secular_values": 0.380868, "emancipative_values": 0.181092}, {"secular_values": 0.347403, "emancipative_values": 0.420449}, {"secular_values": 0.367578, "emancipative_values": 0.388619}, {"secular_values": 0.293132, "emancipative_values": 0.37056}, {"secular_values": 0.359806, "emancipative_values": 0.345021}, {"secular_values": 0.272677, "emancipative_values": 0.361996}, {"secular_values": 0.647696, "emancipative_values": 0.449588}, {"secular_values": 0.349193, "emancipative_values": 0.334978}, {"secular_values": 0.329418, "emancipative_values": 0.403815}, {"secular_values": 0.584642, "emancipative_values": 0.400005}, {"secular_values": 0.389149, "emancipative_values": 0.339356}, {"secular_values": 0.460954, "emancipative_values": 0.463}, {"secular_values": 0.285026, "emancipative_values": 0.393406}, {"secular_values": 0.379143, "emancipative_values": 0.208598}, {"secular_values": 0.146409, "emancipative_values": 0.578454}, {"secular_values": 0.396881, "emancipative_values": 0.547535}, {"secular_values": 0.332938, "emancipative_values": 0.395335}, {"secular_values": 0.581618, "emancipative_values": 0.310844}, {"secular_values": 0.16946, "emancipative_values": 0.598376}, {"secular_values": 0.407696, "emancipative_values": 0.508817}, {"secular_values": 0.444121, "emancipative_values": 0.40537}, {"secular_values": 0.378821, "emancipative_values": 0.128931}, {"secular_values": 0.632508, "emancipative_values": 0.38394}, {"secular_values": 0.361509, "emancipative_values": 0.363219}, {"secular_values": 0.509616, "emancipative_values": 0.686678}, {"secular_values": 0.384607, "emancipative_values": 0.343412}, {"secular_values": 0.386838, "emancipative_values": 0.545062}, {"secular_values": 0.493626, "emancipative_values": 0.325292}, {"secular_values": 0.676286, "emancipative_values": 0.305046}, {"secular_values": 0.592441, "emancipative_values": 0.182944}, {"secular_values": 0.525474, "emancipative_values": 0.336627}, {"secular_values": 0.388949, "emancipative_values": 0.511563}, {"secular_values": 0.357806, "emancipative_values": 0.34349}, {"secular_values": 0.323853, "emancipative_values": 0.598967}, {"secular_values": 0.443815, "emancipative_values": 0.490181}, {"secular_values": 0.208324, "emancipative_values": 0.304535}, {"secular_values": 0.281538, "emancipative_values": 0.484484}, {"secular_values": 0.388142, "emancipative_values": 0.434479}, {"secular_values": 0.518529, "emancipative_values": 0.328065}, {"secular_values": 0.439201, "emancipative_values": 0.151584}, {"secular_values": 0.363111, "emancipative_values": 0.420983}, {"secular_values": 0.361225, "emancipative_values": 0.435651}, {"secular_values": 0.380451, "emancipative_values": 0.228386}, {"secular_values": 0.289555, "emancipative_values": 0.258535}, {"secular_values": 0.563248, "emancipative_values": 0.507326}, {"secular_values": 0.333864, "emancipative_values": 0.298622}, {"secular_values": 0.561345, "emancipative_values": 0.393215}, {"secular_values": 0.32024, "emancipative_values": 0.263767}, {"secular_values": 0.331849, "emancipative_values": 0.545193}, {"secular_values": 0.246195, "emancipative_values": 0.678907}, {"secular_values": 0.516724, "emancipative_values": 0.405216}, {"secular_values": 0.371833, "emancipative_values": 0.46153}, {"secular_values": 0.370389, "emancipative_values": 0.36765}, {"secular_values": 0.301704, "emancipative_values": 0.539277}, {"secular_values": 0.265992, "emancipative_values": 0.309715}, {"secular_values": 0.301645, "emancipative_values": 0.350499}, {"secular_values": 0.525259, "emancipative_values": 0.448138}, {"secular_values": 0.731194, "emancipative_values": 0.667657}, {"secular_values": 0.354437, "emancipative_values": 0.522936}, {"secular_values": 0.280525, "emancipative_values": 0.19771}, {"secular_values": 0.202911, "emancipative_values": 0.38466}, {"secular_values": 0.118889, "emancipative_values": 0.329156}, {"secular_values": 0.640742, "emancipative_values": 0.50015}, {"secular_values": 0.344775, "emancipative_values": 0.433725}, {"secular_values": 0.589387, "emancipative_values": 0.550829}, {"secular_values": 0.706304, "emancipative_values": 0.297123}, {"secular_values": 0.348462, "emancipative_values": 0.492308}, {"secular_values": 0.587047, "emancipative_values": 0.30527}, {"secular_values": 0.429744, "emancipative_values": 0.446636}, {"secular_values": 0.404839, "emancipative_values": 0.605758}, {"secular_values": 0.365836, "emancipative_values": 0.306124}, {"secular_values": 0.416026, "emancipative_values": 0.502292}, {"secular_values": 0.253933, "emancipative_values": 0.427255}, {"secular_values": 0.454411, "emancipative_values": 0.36801}, {"secular_values": 0.461938, "emancipative_values": 0.485808}, {"secular_values": 0.364046, "emancipative_values": 0.590207}, {"secular_values": 0.352701, "emancipative_values": 0.555905}, {"secular_values": 0.384508, "emancipative_values": 0.603429}, {"secular_values": 0.366329, "emancipative_values": 0.036439}, {"secular_values": 0.364491, "emancipative_values": 0.432622}, {"secular_values": 0.667991, "emancipative_values": 0.452396}, {"secular_values": 0.443325, "emancipative_values": 0.664294}, {"secular_values": 0.422393, "emancipative_values": 0.348743}, {"secular_values": 0.352709, "emancipative_values": 0.336626}, {"secular_values": 0.302902, "emancipative_values": 0.447471}, {"secular_values": 0.200072, "emancipative_values": 0.217653}, {"secular_values": 0.388529, "emancipative_values": 0.313369}, {"secular_values": 0.276802, "emancipative_values": 0.35019}, {"secular_values": 0.414761, "emancipative_values": 0.201728}, {"secular_values": 0.421738, "emancipative_values": 0.268717}], "india_sample": [{"secular_values": 0.211811, "emancipative_values": 0.541766}, {"secular_values": 0.354198, "emancipative_values": 0.602915}, {"secular_values": 0.421765, "emancipative_values": 0.109077}, {"secular_values": 0.409354, "emancipative_values": 0.172264}, {"secular_values": 0.068332, "emancipative_values": 0.215432}, {"secular_values": 0.459513, "emancipative_values": 0.312975}, {"secular_values": 0.081691, "emancipative_values": 0.270899}, {"secular_values": 0.323298, "emancipative_values": 0.280186}, {"secular_values": 0.074584, "emancipative_values": 0.473506}, {"secular_values": 0.300831, "emancipative_values": 0.525889}, {"secular_values": 0.438866, "emancipative_values": 0.756803}, {"secular_values": 0.207266, "emancipative_values": 0.485639}, {"secular_values": 0.247042, "emancipative_values": 0.514058}, {"secular_values": 0.367899, "emancipative_values": 0.581392}, {"secular_values": 0.248307, "emancipative_values": 0.257983}, {"secular_values": 0.143815, "emancipative_values": 0.260545}, {"secular_values": 0.207789, "emancipative_values": 0.255681}, {"secular_values": 0.255036, "emancipative_values": 0.484483}, {"secular_values": 0.108125, "emancipative_values": 0.275017}, {"secular_values": 0.412708, "emancipative_values": 0.517237}, {"secular_values": 0.36778, "emancipative_values": 0.259623}, {"secular_values": 0.408908, "emancipative_values": 0.197136}, {"secular_values": 0.158379, "emancipative_values": 0.544964}, {"secular_values": 0.489907, "emancipative_values": 0.684571}, {"secular_values": 0.16229, "emancipative_values": 0.373118}, {"secular_values": 0.132764, "emancipative_values": 0.385035}, {"secular_values": 0.422867, "emancipative_values": 0.340518}, {"secular_values": 0.181005, "emancipative_values": 0.520787}, {"secular_values": 0.095463, "emancipative_values": 0.30787}, {"secular_values": 0.532319, "emancipative_values": 0.591158}, {"secular_values": 0.283917, "emancipative_values": 0.323027}, {"secular_values": 0.074077, "emancipative_values": 0.270778}, {"secular_values": 0.305542, "emancipative_values": 0.336678}, {"secular_values": 0.129721, "emancipative_values": 0.172505}, {"secular_values": 0.186569, "emancipative_values": 0.560081}, {"secular_values": 0.534682, "emancipative_values": 0.314996}, {"secular_values": 0.374317, "emancipative_values": 0.268615}, {"secular_values": 0.413082, "emancipative_values": 0.50262}, {"secular_values": 0.549469, "emancipative_values": 0.399417}, {"secular_values": 0.185508, "emancipative_values": 0.306907}, {"secular_values": 0.305451, "emancipative_values": 0.220685}, {"secular_values": 0.671815, "emancipative_values": 0.341429}, {"secular_values": 0.163534, "emancipative_values": 0.400121}, {"secular_values": 0.418195, "emancipative_values": 0.792219}, {"secular_values": 0.255062, "emancipative_values": 0.498636}, {"secular_values": 0.349037, "emancipative_values": 0.368095}, {"secular_values": 0.18584, "emancipative_values": 0.335685}, {"secular_values": 0.400155, "emancipative_values": 0.352883}, {"secular_values": 0.157944, "emancipative_values": 0.326573}, {"secular_values": 0.092964, "emancipative_values": 0.546476}, {"secular_values": 0.179181, "emancipative_values": 0.244119}, {"secular_values": 0.433281, "emancipative_values": 0.552175}, {"secular_values": 0.217388, "emancipative_values": 0.219199}, {"secular_values": 0.567114, "emancipative_values": 0.556459}, {"secular_values": 0.016495, "emancipative_values": 0.313863}, {"secular_values": 0.551177, "emancipative_values": 0.476837}, {"secular_values": 0.172938, "emancipative_values": 0.352559}, {"secular_values": 0.201847, "emancipative_values": 0.454185}, {"secular_values": 0.041625, "emancipative_values": 0.362878}, {"secular_values": 0.294634, "emancipative_values": 0.160466}, {"secular_values": 0.38388, "emancipative_values": 0.378539}, {"secular_values": 0.468776, "emancipative_values": 0.43662}, {"secular_values": 0.113454, "emancipative_values": 0.431102}, {"secular_values": 0.308663, "emancipative_values": 0.339684}, {"secular_values": 0.12004, "emancipative_values": 0.437805}, {"secular_values": 0.134326, "emancipative_values": 0.53002}, {"secular_values": 0.403172, "emancipative_values": 0.279064}, {"secular_values": 0.383019, "emancipative_values": 0.45478}, {"secular_values": 0.349058, "emancipative_values": 0.355463}, {"secular_values": 0.0, "emancipative_values": 0.305201}, {"secular_values": 0.124186, "emancipative_values": 0.207901}, {"secular_values": 0.418376, "emancipative_values": 0.207076}, {"secular_values": 0.206553, "emancipative_values": 0.314607}, {"secular_values": 0.20537, "emancipative_values": 0.215759}, {"secular_values": 0.331802, "emancipative_values": 0.198109}, {"secular_values": 0.694985, "emancipative_values": 0.388918}, {"secular_values": 0.277022, "emancipative_values": 0.358035}, {"secular_values": 0.153685, "emancipative_values": 0.369381}, {"secular_values": 0.552198, "emancipative_values": 0.408108}, {"secular_values": 0.230527, "emancipative_values": 0.257873}, {"secular_values": 0.720559, "emancipative_values": 0.436679}, {"secular_values": 0.266745, "emancipative_values": 0.546751}, {"secular_values": 0.228288, "emancipative_values": 0.116878}, {"secular_values": 0.061921, "emancipative_values": 0.224242}, {"secular_values": 0.337565, "emancipative_values": 0.199957}, {"secular_values": 0.425642, "emancipative_values": 0.259498}, {"secular_values": 0.209103, "emancipative_values": 0.29694}, {"secular_values": 0.11659, "emancipative_values": 0.302061}, {"secular_values": 0.211386, "emancipative_values": 0.608205}, {"secular_values": 0.187869, "emancipative_values": 0.339461}, {"secular_values": 0.352174, "emancipative_values": 0.488827}, {"secular_values": 0.079467, "emancipative_values": 0.390971}, {"secular_values": 0.128257, "emancipative_values": 0.49251}, {"secular_values": 0.122552, "emancipative_values": 0.235092}, {"secular_values": 0.356646, "emancipative_values": 0.30093}, {"secular_values": 0.453362, "emancipative_values": 0.457992}, {"secular_values": 0.091912, "emancipative_values": 0.330183}, {"secular_values": 0.255154, "emancipative_values": 0.317326}, {"secular_values": 0.155998, "emancipative_values": 0.314063}, {"secular_values": 0.096731, "emancipative_values": 0.31659}, {"secular_values": 0.635904, "emancipative_values": 0.468672}, {"secular_values": 0.071723, "emancipative_values": 0.194445}, {"secular_values": 0.168945, "emancipative_values": 0.587495}, {"secular_values": 0.356218, "emancipative_values": 0.377144}, {"secular_values": 0.060214, "emancipative_values": 0.46514}, {"secular_values": 0.133156, "emancipative_values": 0.330249}, {"secular_values": 0.362309, "emancipative_values": 0.301083}, {"secular_values": 0.201012, "emancipative_values": 0.210361}, {"secular_values": 0.177154, "emancipative_values": 0.37612}, {"secular_values": 0.413593, "emancipative_values": 0.342615}, {"secular_values": 0.094043, "emancipative_values": 0.333916}, {"secular_values": 0.371944, "emancipative_values": 0.153342}, {"secular_values": 0.164205, "emancipative_values": 0.491469}, {"secular_values": 0.0303, "emancipative_values": 0.586216}, {"secular_values": 0.097825, "emancipative_values": 0.58801}, {"secular_values": 0.361762, "emancipative_values": 0.320666}, {"secular_values": 0.245245, "emancipative_values": 0.632481}, {"secular_values": 0.133349, "emancipative_values": 0.531031}, {"secular_values": 0.227991, "emancipative_values": 0.494326}, {"secular_values": 0.226294, "emancipative_values": 0.384102}, {"secular_values": 0.243858, "emancipative_values": 0.338712}, {"secular_values": 0.067502, "emancipative_values": 0.271794}, {"secular_values": 0.131105, "emancipative_values": 0.250409}, {"secular_values": 0.094216, "emancipative_values": 0.529051}, {"secular_values": 0.106873, "emancipative_values": 0.245815}, {"secular_values": 0.648651, "emancipative_values": 0.330131}, {"secular_values": 0.394236, "emancipative_values": 0.45529}, {"secular_values": 0.349361, "emancipative_values": 0.244347}, {"secular_values": 0.369099, "emancipative_values": 0.314942}, {"secular_values": 0.38846, "emancipative_values": 0.380515}, {"secular_values": 0.190308, "emancipative_values": 0.235537}, {"secular_values": 0.294803, "emancipative_values": 0.386381}, {"secular_values": 0.190223, "emancipative_values": 0.365056}, {"secular_values": 0.387593, "emancipative_values": 0.386033}, {"secular_values": 0.152747, "emancipative_values": 0.140385}, {"secular_values": 0.116937, "emancipative_values": 0.735272}, {"secular_values": 0.29304, "emancipative_values": 0.359525}, {"secular_values": 0.240919, "emancipative_values": 0.172501}, {"secular_values": 0.344087, "emancipative_values": 0.318507}, {"secular_values": 0.294747, "emancipative_values": 0.602251}, {"secular_values": 0.25958, "emancipative_values": 0.373752}, {"secular_values": 0.642884, "emancipative_values": 0.493317}, {"secular_values": 0.088226, "emancipative_values": 0.348904}, {"secular_values": 0.23538, "emancipative_values": 0.182248}, {"secular_values": 0.40264, "emancipative_values": 0.386434}, {"secular_values": 0.258636, "emancipative_values": 0.564093}, {"secular_values": 0.473791, "emancipative_values": 0.377681}, {"secular_values": 0.085452, "emancipative_values": 0.409511}, {"secular_values": 0.268894, "emancipative_values": 0.478273}, {"secular_values": 0.106427, "emancipative_values": 0.448391}, {"secular_values": 0.383793, "emancipative_values": 0.283207}, {"secular_values": 0.215768, "emancipative_values": 0.296245}, {"secular_values": 0.211356, "emancipative_values": 0.733769}, {"secular_values": 0.221941, "emancipative_values": 0.522197}, {"secular_values": 0.05451, "emancipative_values": 0.010285}, {"secular_values": 0.311616, "emancipative_values": 0.382127}, {"secular_values": 0.424642, "emancipative_values": 0.403403}, {"secular_values": 0.499207, "emancipative_values": 0.541267}, {"secular_values": 0.236575, "emancipative_values": 0.248493}, {"secular_values": 0.413451, "emancipative_values": 0.538878}, {"secular_values": 0.173593, "emancipative_values": 0.615615}, {"secular_values": 0.061633, "emancipative_values": 0.607589}, {"secular_values": 0.572709, "emancipative_values": 0.400809}, {"secular_values": 0.342635, "emancipative_values": 0.466596}, {"secular_values": 0.101427, "emancipative_values": 0.199437}, {"secular_values": 0.205164, "emancipative_values": 0.357414}, {"secular_values": 0.41977, "emancipative_values": 0.368397}, {"secular_values": 0.284513, "emancipative_values": 0.254321}, {"secular_values": 0.092816, "emancipative_values": 0.261024}, {"secular_values": 0.149853, "emancipative_values": 0.483176}, {"secular_values": 0.760135, "emancipative_values": 0.269132}, {"secular_values": 0.153111, "emancipative_values": 0.231201}, {"secular_values": 0.424238, "emancipative_values": 0.559461}, {"secular_values": 0.064675, "emancipative_values": 0.314214}, {"secular_values": 0.080928, "emancipative_values": 0.175999}, {"secular_values": 0.223193, "emancipative_values": 0.290174}, {"secular_values": 0.091499, "emancipative_values": 0.221646}, {"secular_values": 0.084721, "emancipative_values": 0.655186}, {"secular_values": 0.182569, "emancipative_values": 0.355027}, {"secular_values": 0.179215, "emancipative_values": 0.521431}, {"secular_values": 0.624032, "emancipative_values": 0.525105}, {"secular_values": 0.308237, "emancipative_values": 0.607143}, {"secular_values": 0.496895, "emancipative_values": 0.417433}, {"secular_values": 0.534307, "emancipative_values": 0.371671}, {"secular_values": 0.107403, "emancipative_values": 0.476255}, {"secular_values": 0.410209, "emancipative_values": 0.266356}, {"secular_values": 0.079493, "emancipative_values": 0.421229}, {"secular_values": 0.116531, "emancipative_values": 0.185047}, {"secular_values": 0.205332, "emancipative_values": 0.352452}, {"secular_values": 0.039142, "emancipative_values": 0.144446}, {"secular_values": 0.31934, "emancipative_values": 0.327598}, {"secular_values": 0.111136, "emancipative_values": 0.589584}, {"secular_values": 0.166148, "emancipative_values": 0.245115}, {"secular_values": 0.425579, "emancipative_values": 0.378509}, {"secular_values": 0.216683, "emancipative_values": 0.356186}, {"secular_values": 0.175655, "emancipative_values": 0.346936}, {"secular_values": 0.351573, "emancipative_values": 0.357872}, {"secular_values": 0.178008, "emancipative_values": 0.414515}, {"secular_values": 0.235843, "emancipative_values": 0.571654}, {"secular_values": 0.465518, "emancipative_values": 0.519356}, {"secular_values": 0.186286, "emancipative_values": 0.26761}, {"secular_values": 0.0, "emancipative_values": 0.465667}, {"secular_values": 0.148696, "emancipative_values": 0.279013}, {"secular_values": 0.169077, "emancipative_values": 0.363592}, {"secular_values": 0.05354, "emancipative_values": 0.513425}, {"secular_values": 0.198599, "emancipative_values": 0.198588}, {"secular_values": 0.329898, "emancipative_values": 0.103662}, {"secular_values": 0.384372, "emancipative_values": 0.314077}, {"secular_values": 0.383449, "emancipative_values": 0.17226}, {"secular_values": 0.315823, "emancipative_values": 0.367787}, {"secular_values": 0.364607, "emancipative_values": 0.375927}, {"secular_values": 0.638495, "emancipative_values": 0.588681}, {"secular_values": 0.106467, "emancipative_values": 0.61987}, {"secular_values": 0.270698, "emancipative_values": 0.214923}, {"secular_values": 0.390533, "emancipative_values": 0.2987}, {"secular_values": 0.193581, "emancipative_values": 0.22448}, {"secular_values": 0.166814, "emancipative_values": 0.204927}, {"secular_values": 0.46079, "emancipative_values": 0.390394}, {"secular_values": 0.315306, "emancipative_values": 0.27913}, {"secular_values": 0.441204, "emancipative_values": 0.535943}, {"secular_values": 0.361227, "emancipative_values": 0.264556}, {"secular_values": 0.197168, "emancipative_values": 0.52051}, {"secular_values": 0.106164, "emancipative_values": 0.396895}, {"secular_values": 0.270971, "emancipative_values": 0.37798}, {"secular_values": 0.245138, "emancipative_values": 0.570968}, {"secular_values": 0.08218, "emancipative_values": 0.132656}, {"secular_values": 0.079468, "emancipative_values": 0.291077}, {"secular_values": 0.265627, "emancipative_values": 0.246077}, {"secular_values": 0.175984, "emancipative_values": 0.369369}, {"secular_values": 0.194872, "emancipative_values": 0.442636}, {"secular_values": 0.281781, "emancipative_values": 0.609233}, {"secular_values": 0.108404, "emancipative_values": 0.195068}, {"secular_values": 0.379333, "emancipative_values": 0.430403}, {"secular_values": 0.286214, "emancipative_values": 0.353821}, {"secular_values": 0.449534, "emancipative_values": 0.199437}, {"secular_values": 0.081054, "emancipative_values": 0.342569}, {"secular_values": 0.497734, "emancipative_values": 0.493835}, {"secular_values": 0.03373, "emancipative_values": 0.193723}, {"secular_values": 0.170726, "emancipative_values": 0.334932}, {"secular_values": 0.20524, "emancipative_values": 0.446443}, {"secular_values": 0.368602, "emancipative_values": 0.56342}, {"secular_values": 0.154583, "emancipative_values": 0.586708}, {"secular_values": 0.388398, "emancipative_values": 0.462872}, {"secular_values": 0.354337, "emancipative_values": 0.328914}, {"secular_values": 0.101832, "emancipative_values": 0.385509}, {"secular_values": 0.197269, "emancipative_values": 0.393636}, {"secular_values": 0.135384, "emancipative_values": 0.498378}, {"secular_values": 0.131297, "emancipative_values": 0.363796}, {"secular_values": 0.146416, "emancipative_values": 0.539503}, {"secular_values": 0.219049, "emancipative_values": 0.290877}, {"secular_values": 0.195279, "emancipative_values": 0.452444}, {"secular_values": 0.41542, "emancipative_values": 0.440145}, {"secular_values": 0.270768, "emancipative_values": 0.197606}, {"secular_values": 0.304106, "emancipative_values": 0.330336}, {"secular_values": 0.174521, "emancipative_values": 0.241779}, {"secular_values": 0.0, "emancipative_values": 0.587518}, {"secular_values": 0.20398, "emancipative_values": 0.105382}, {"secular_values": 0.267504, "emancipative_values": 0.459655}, {"secular_values": 0.402284, "emancipative_values": 0.52936}, {"secular_values": 0.156276, "emancipative_values": 0.187364}, {"secular_values": 0.250063, "emancipative_values": 0.331309}, {"secular_values": 0.508568, "emancipative_values": 0.266131}, {"secular_values": 0.400758, "emancipative_values": 0.312237}, {"secular_values": 0.465784, "emancipative_values": 0.506611}, {"secular_values": 0.093134, "emancipative_values": 0.605362}, {"secular_values": 0.232346, "emancipative_values": 0.558851}, {"secular_values": 0.184601, "emancipative_values": 0.179552}, {"secular_values": 0.269882, "emancipative_values": 0.301075}, {"secular_values": 0.288555, "emancipative_values": 0.449415}, {"secular_values": 0.133003, "emancipative_values": 0.316103}, {"secular_values": 0.252355, "emancipative_values": 0.239334}, {"secular_values": 0.426252, "emancipative_values": 0.302503}, {"secular_values": 0.155986, "emancipative_values": 0.195647}, {"secular_values": 0.191223, "emancipative_values": 0.282746}, {"secular_values": 0.361855, "emancipative_values": 0.247016}, {"secular_values": 0.07899, "emancipative_values": 0.151964}, {"secular_values": 0.492638, "emancipative_values": 0.332519}, {"secular_values": 0.096006, "emancipative_values": 0.489769}, {"secular_values": 0.119351, "emancipative_values": 0.37722}, {"secular_values": 0.164633, "emancipative_values": 0.150803}, {"secular_values": 0.287597, "emancipative_values": 0.231722}, {"secular_values": 0.098989, "emancipative_values": 0.242319}, {"secular_values": 0.174841, "emancipative_values": 0.427505}, {"secular_values": 0.289803, "emancipative_values": 0.461699}, {"secular_values": 0.236388, "emancipative_values": 0.381523}, {"secular_values": 0.072343, "emancipative_values": 0.330739}, {"secular_values": 0.167056, "emancipative_values": 0.33872}, {"secular_values": 0.413792, "emancipative_values": 0.266052}, {"secular_values": 0.190773, "emancipative_values": 0.627271}, {"secular_values": 0.16524, "emancipative_values": 0.303865}, {"secular_values": 0.688008, "emancipative_values": 0.390202}, {"secular_values": 0.474225, "emancipative_values": 0.271362}, {"secular_values": 0.283615, "emancipative_values": 0.163152}, {"secular_values": 0.675918, "emancipative_values": 0.560922}, {"secular_values": 0.196489, "emancipative_values": 0.486288}, {"secular_values": 0.561917, "emancipative_values": 0.585894}, {"secular_values": 0.517066, "emancipative_values": 0.586439}, {"secular_values": 0.294556, "emancipative_values": 0.237895}, {"secular_values": 0.287012, "emancipative_values": 0.328602}, {"secular_values": 0.29273, "emancipative_values": 0.27314}], "singapore_heatmap": [[5, 3, 3, 1, 1, 0, 0, 0, 0, 0], [3, 2, 1, 0, 3, 0, 1, 0, 0, 0], [6, 5, 9, 8, 8, 5, 3, 0, 0, 0], [6, 6, 9, 11, 22, 9, 6, 3, 0, 0], [8, 15, 26, 28, 70, 50, 32, 21, 0, 0], [2, 5, 7, 22, 57, 52, 56, 28, 5, 1], [2, 2, 13, 22, 89, 126, 134, 98, 15, 7], [0, 1, 3, 4, 44, 55, 142, 117, 44, 32], [0, 0, 0, 1, 7, 13, 35, 50, 19, 23], [0, 0, 0, 0, 0, 5, 18, 56, 28, 69]]}
+    </script>
+
+    <script>
+        // Parse data
+        const data = JSON.parse(document.getElementById('data').textContent);
+
+        // Populate column table
+        const colRows = document.getElementById('column-rows');
+        Object.entries(data.column_info).forEach(([col, info]) => {
+            const row = document.createElement('tr');
+            row.innerHTML = `<td>${col}</td><td>${info.type}</td><td>${info.observations}</td>`;
+            colRows.appendChild(row);
+        });
+
+        // Cultural Map (scatter: secular vs emancipative)
+        const culturalMapX = [];
+        const culturalMapY = [];
+        const culturalMapLabels = [];
+        const culturalMapColors = [];
+
+        data.countries.forEach(country => {
+            const agg = data.aggregates[country];
+            culturalMapX.push(agg.secular_values);
+            culturalMapY.push(agg.emancipative_values);
+            culturalMapLabels.push(country);
+            culturalMapColors.push(data.colors[country]);
+        });
+
+        Plotly.newPlot('cultural-map', [{
+            x: culturalMapX,
+            y: culturalMapY,
+            mode: 'markers+text',
+            marker: {
+                size: 15,
+                color: culturalMapColors,
+                line: {color: 'rgba(0,0,0,0.3)', width: 2},
+            },
+            text: culturalMapLabels,
+            textposition: 'middle center',
+            textfont: {size: 11, color: 'white', weight: 'bold'},
+            hovertemplate: '<b>%{text}</b><br>Secular Values: %{x:.2f}<br>Emancipative Values: %{y:.2f}<extra></extra>',
+        }], {
+            xaxis: {title: 'Secular Values →', zeroline: false},
+            yaxis: {title: 'Emancipative Values →', zeroline: false},
+            hovermode: 'closest',
+            margin: {l: 60, r: 40, t: 40, b: 60},
+            plot_bgcolor: 'rgba(0,0,0,0)',
+            paper_bgcolor: 'rgba(0,0,0,0)',
+        });
+
+        // Takeaway
+        const minEmancipative = Math.min(...culturalMapY);
+        const maxEmancipative = Math.max(...culturalMapY);
+        const minSecular = Math.min(...culturalMapX);
+        const maxSecular = Math.max(...culturalMapX);
+        const maxEmancipativeIdx = culturalMapY.indexOf(maxEmancipative);
+        const maxSecularIdx = culturalMapX.indexOf(maxSecular);
+        document.getElementById('cultural-map-takeaway').textContent =
+            `Countries cluster along both dimensions: ${data.countries[maxEmancipativeIdx]} shows the highest emancipative values (${maxEmancipative.toFixed(2)}), ` +
+            `while ${data.countries[maxSecularIdx]} is most secular (${maxSecular.toFixed(2)}). This reflects distinct cultural and institutional contexts across Asia.`;
+
+        // Value Fingerprints (radar chart)
+        const radarCategories = ['Life Satisfaction', 'Trust in People', 'Importance of God', 'Emancipative Values', 'Secular Values', 'Financial Satisfaction'];
+        const radarTraces = data.countries.map(country => {
+            const agg = data.aggregates[country];
+            return {
+                r: [
+                    agg.life_satisfaction / 10,
+                    agg.trust_people,
+                    agg.importance_of_god / 10,
+                    agg.emancipative_values,
+                    agg.secular_values,
+                    agg.financial_satisfaction / 10,
+                ],
+                theta: radarCategories,
+                fill: 'toself',
+                name: country,
+                line: {color: data.colors[country], width: 2},
+                marker: {size: 6, color: data.colors[country]},
+            };
+        });
+
+        Plotly.newPlot('value-fingerprints', radarTraces, {
+            polar: {
+                radialaxis: {visible: true, range: [0, 1]},
+            },
+            hovermode: 'closest',
+            margin: {l: 80, r: 80, t: 80, b: 80},
+            plot_bgcolor: 'rgba(0,0,0,0)',
+            paper_bgcolor: 'rgba(0,0,0,0)',
+        });
+
+        document.getElementById('fingerprints-takeaway').textContent =
+            `Each nation displays a distinct profile: ${data.countries[0]} and ${data.countries[4]} show contrasting patterns ` +
+            `across multiple dimensions, illustrating how values cluster differently by region and culture.`;
+
+        // China vs India scatter
+        const chinaXY = data.china_sample.map(s => [s.secular_values, s.emancipative_values]);
+        const indiaXY = data.india_sample.map(s => [s.secular_values, s.emancipative_values]);
+
+        const chinaX = chinaXY.map(p => p[0]);
+        const chinaY = chinaXY.map(p => p[1]);
+        const indiaX = indiaXY.map(p => p[0]);
+        const indiaY = indiaXY.map(p => p[1]);
+
+        // Compute means
+        const chinaMeanX = chinaX.reduce((a, b) => a + b, 0) / chinaX.length;
+        const chinaMeanY = chinaY.reduce((a, b) => a + b, 0) / chinaY.length;
+        const indiaMeanX = indiaX.reduce((a, b) => a + b, 0) / indiaX.length;
+        const indiaMeanY = indiaY.reduce((a, b) => a + b, 0) / indiaY.length;
+
+        Plotly.newPlot('china-india-scatter', [
+            {
+                x: chinaX,
+                y: chinaY,
+                mode: 'markers',
+                marker: {size: 5, color: data.colors['China'], opacity: 0.5},
+                name: 'China (samples)',
+                hovertemplate: 'China<br>Secular: %{x:.2f}<br>Emancipative: %{y:.2f}<extra></extra>',
+            },
+            {
+                x: indiaX,
+                y: indiaY,
+                mode: 'markers',
+                marker: {size: 5, color: data.colors['India'], opacity: 0.5},
+                name: 'India (samples)',
+                hovertemplate: 'India<br>Secular: %{x:.2f}<br>Emancipative: %{y:.2f}<extra></extra>',
+            },
+            {
+                x: [chinaMeanX],
+                y: [chinaMeanY],
+                mode: 'markers',
+                marker: {size: 15, color: data.colors['China'], symbol: 'circle', line: {color: 'white', width: 2}},
+                name: 'China (mean)',
+                hovertemplate: 'China Mean<br>Secular: %{x:.2f}<br>Emancipative: %{y:.2f}<extra></extra>',
+            },
+            {
+                x: [indiaMeanX],
+                y: [indiaMeanY],
+                mode: 'markers',
+                marker: {size: 15, color: data.colors['India'], symbol: 'circle', line: {color: 'white', width: 2}},
+                name: 'India (mean)',
+                hovertemplate: 'India Mean<br>Secular: %{x:.2f}<br>Emancipative: %{y:.2f}<extra></extra>',
+            },
+        ], {
+            xaxis: {title: 'Secular Values →'},
+            yaxis: {title: 'Emancipative Values →'},
+            hovermode: 'closest',
+            margin: {l: 60, r: 40, t: 40, b: 60},
+            plot_bgcolor: 'rgba(0,0,0,0)',
+            paper_bgcolor: 'rgba(0,0,0,0)',
+        });
+
+        const overlapX = Math.abs(chinaMeanX - indiaMeanX);
+        const overlapY = Math.abs(chinaMeanY - indiaMeanY);
+        document.getElementById('china-india-takeaway').textContent =
+            `Despite different average positions (China: Secular=${chinaMeanX.toFixed(2)}, Emancipative=${chinaMeanY.toFixed(2)}; ` +
+            `India: Secular=${indiaMeanX.toFixed(2)}, Emancipative=${indiaMeanY.toFixed(2)}), the two populations overlap substantially, ` +
+            `indicating that diversity within each country rivals differences between them.`;
+
+        // Singapore heatmap
+        const heatmapTable = document.getElementById('singapore-heatmap');
+        const heatmapData = data.singapore_heatmap;
+        const maxCount = Math.max(...heatmapData.map(row => Math.max(...row)));
+
+        // Header row (financial satisfaction columns)
+        const headerRow = document.createElement('tr');
+        headerRow.innerHTML = '<th style="width: 60px; text-align: center;">Life / Fin</th>';
+        for (let col = 1; col <= 10; col++) {
+            headerRow.innerHTML += `<th>${col}</th>`;
+        }
+        heatmapTable.appendChild(headerRow);
+
+        // Data rows
+        for (let life = 1; life <= 10; life++) {
+            const row = document.createElement('tr');
+            row.innerHTML = `<th>${life}</th>`;
+            for (let fin = 1; fin <= 10; fin++) {
+                const count = heatmapData[life - 1][fin - 1];
+                const intensity = count / maxCount;
+                const bgColor = `rgba(0, 102, 204, ${intensity * 0.8})`;
+                const cell = document.createElement('td');
+                cell.innerHTML = `<div class="heatmap-cell" style="background-color: ${bgColor};">${count}</div>`;
+                cell.title = `Life: ${life}, Financial: ${fin}, Count: ${count}`;
+                row.appendChild(cell);
+            }
+            heatmapTable.appendChild(row);
+        }
+
+        // Takeaway
+        const sgCount = heatmapData.flat().reduce((a, b) => a + b, 0);
+        document.getElementById('singapore-takeaway').textContent =
+            `Among ${sgCount} Singapore respondents, life and financial satisfaction show modest positive correlation: ` +
+            `the diagonal band from lower-left to upper-right is denser than random, suggesting economic security moderately supports life satisfaction.`;
+    </script>
+</body>
+</html>
